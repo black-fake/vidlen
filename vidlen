@@ -1,0 +1,87 @@
+#!/bin/bash - 
+#===============================================================================
+#
+#          FILE: vidlen
+# 
+#===============================================================================
+
+
+# standard settings ---------
+
+defaultFlag='-a'
+absolutePaths='on' # on/off
+durationEmptyDisplayError='on'
+
+# ---------------------------
+
+
+RED='\033[1;31m'
+BLUE='\033[1;34m'
+CYAN='\033[1;36m'
+WHITE='\033[1;37m'
+NC='\033[0m'
+
+function allVids(){
+	relativePath=${1:-'./'}
+	if [[ "$absolutePaths" == on ]];then
+		if [[ "$relativePath" != '/'* ]];then
+			relativePath="${PWD}/${relativePath}"
+		fi
+	fi
+
+	printf "${BLUE}length of given vid-files:\n${WHITE}---${NC}\n"
+
+	while read file
+	do
+		if [[ "$file" == *'.mp4' ]];then
+			vidFile="$file"
+			Output=$(ffprobe "$vidFile" 2>&1)
+			Duration=$(grep -o -E 'Duration\: ([0-9]{2}:){2}([0-9]{2}|\.)+' <<< "$Output")
+
+			if [[ "$durationEmptyDisplayError" == on ]];then
+				if [[ "$Duration" == '' ]];then
+					Duration="${RED}no-duration${NC}"
+				fi
+			fi
+
+			printf "${CYAN}\'${vidFile}\'${NC}   →   ${WHITE}${Duration}${NC}\n"
+		fi
+	done< <(ls "${relativePath}")
+
+	printf "${WHITE}---${NC}\n"
+}
+
+function singleVid(){
+	vidFile="$1"
+	Output=$(ffprobe "$vidFile" 2>&1)
+	Duration=$(grep -o -E 'Duration\: ([0-9]{2}:){2}([0-9]{2}|\.)+' <<< "$Output")
+
+	if [[ "$durationEmptyDisplayError" == on ]];then
+		if [[ "$Duration" == '' ]];then
+			Duration="${RED}no-duration${NC}"
+		fi
+	fi
+
+	printf "${BLUE}length of ${CYAN}\'${vidFile}\'${BLUE}:\n${WHITE}---${NC}\n"
+	printf "${WHITE}${Duration}${NC}\n"
+	printf "${WHITE}---${NC}\n"
+}
+
+flag=${1:-${defaultFlag}}
+
+if [[ "$flag" == "-"* ]];then
+	if [[ "$flag" == '-a' || "$flag" == '--all' ]];then
+		flag=$1
+		shift 1
+		if [[ "$#" == 0 ]];then
+			allVids
+		elif [[ "$#" > 0 ]];then
+			allVids "$1"
+		fi
+	else
+		printf "unkonw flag ${WHITE}$1${NC}\n"
+	fi
+else
+	singleVid "$1"
+fi
+
