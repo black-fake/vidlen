@@ -33,7 +33,7 @@ function allVids(){
 
 	while read file
 	do
-		if [[ "$file" == *'.mp4' ]];then
+		if [[ "$file" == *'.avi' || "$file" == *'.flv' || "$file" == *'.mkv' || "$file" == *'.mp4' || "$file" == *'.mov' || "$file" == *'.webm' ]];then
 			vidFile="$file"
 			Output=$(ffprobe "$vidFile" 2>&1)
 			Duration=$(grep -o -E 'Duration\: ([0-9]{2}:){2}([0-9]{2}|\.)+' <<< "$Output")
